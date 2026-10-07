@@ -1,0 +1,154 @@
+==============================================================================
+KESTREL HOME — VALIDATION REPORT
+Generated: 2026-10-07 19:23 IST
+==============================================================================
+
+──────────────────────────────────────────────────────────────────────────────
+§1  CROSS-VALIDATION vs BOT LABELS (5-fold stratified)
+    This is the primary metric: how well we reproduce the bot's routing.
+──────────────────────────────────────────────────────────────────────────────
+
+  Overall accuracy:    0.9548  (95.5%)
+  Weighted F1:         0.9549
+  Target:              ≥ 90% (Ritu's bar)
+  Result:              ✓ PASS
+
+  Per-fold accuracy:
+    Fold 1: 0.9524
+    Fold 2: 0.9580
+    Fold 3: 0.9579
+    Fold 4: 0.9566
+    Fold 5: 0.9492
+
+──────────────────────────────────────────────────────────────────────────────
+§2  CLASSIFICATION REPORT vs BOT LABELS
+──────────────────────────────────────────────────────────────────────────────
+                       precision    recall  f1-score   support
+
+              Billing     0.9520    0.9704    0.9611      1656
+Filters & Consumables     0.9281    0.9561    0.9419      1458
+      Installs & Demo     0.9390    0.9612    0.9500      1185
+       Product Advice     0.9536    0.9415    0.9475      1180
+              Repairs     0.9828    0.9485    0.9654      3129
+Returns & Replacement     0.9451    0.9540    0.9496      1174
+      Warranty Claims     0.9476    0.9558    0.9517      1040
+
+             accuracy                         0.9548     10822
+            macro avg     0.9498    0.9554    0.9524     10822
+         weighted avg     0.9553    0.9548    0.9549     10822
+
+
+──────────────────────────────────────────────────────────────────────────────
+§3  CONFUSION MATRIX vs BOT LABELS
+    Rows = actual bot label, Columns = our prediction
+──────────────────────────────────────────────────────────────────────────────
+
+                              Billing  Filters &   Installs &  Product Ad     Repairs  Returns &   Warranty C
+  -------------------------------------------------------------------------------------------------------------
+                  Billing        1607          13          10           8           4           8           6
+    Filters & Consumables           8        1394          16           6          12          12          10
+          Installs & Demo           7          10        1139           9           9           4           7
+           Product Advice          11           8          19        1111          12           9          10
+                  Repairs          36          59          18          16        2968          23           9
+    Returns & Replacement           9          11           7           5           9        1120          13
+          Warranty Claims          10           7           4          10           6           9         994
+
+──────────────────────────────────────────────────────────────────────────────
+§4  OUR MODEL vs ACTUAL OUTCOMES (final_team)
+    How would our model perform against where requests actually ended up?
+──────────────────────────────────────────────────────────────────────────────
+
+  Bot accuracy vs final outcomes:   0.7717  (77.2%)
+  Our accuracy vs final outcomes:   0.7643  (76.4%)
+  Improvement:                      -0.7 pp
+
+  Cases where our model disagrees with bot: 489
+    Our model correct (matches final):  167 (34.2%)
+    Bot correct (matches final):        247 (50.5%)
+    Neither correct:                    75
+
+──────────────────────────────────────────────────────────────────────────────
+§5  TRANSFER & COST ANALYSIS
+──────────────────────────────────────────────────────────────────────────────
+
+  Bot misroutes:  2471/10822 (22.8%)
+  Our misroutes:  2551/10822 (23.6%)
+  Transfer reduction: -80 fewer transfers per 10822 requests
+
+  Monthly volume: ~700 requests
+  Cost per misroute: Rs 565 (Rs 305 transfer + Rs 260 extra contact)
+
+  Current bot:
+    Monthly misroutes:  ~160
+    Annual misroute cost: Rs 1,083,660
+    Annual licence:       Rs 320,000
+    Total annual cost:    Rs 1,403,660
+
+  Our model:
+    Monthly misroutes:  ~165
+    Annual misroute cost: Rs 1,118,744
+    Annual licence:       Rs 0
+    Total annual cost:    Rs 1,118,744
+
+  NET ANNUAL SAVINGS:   Rs 284,916
+
+──────────────────────────────────────────────────────────────────────────────
+§6  ERROR ANALYSIS (mismatches vs bot labels)
+──────────────────────────────────────────────────────────────────────────────
+
+  Total mismatches vs bot: 489 (4.5%)
+
+  Most common mismatches (bot_label → our_prediction):
+                      Repairs → Filters & Consumables        59
+                      Repairs → Billing                      36
+                      Repairs → Returns & Replacement        23
+               Product Advice → Installs & Demo              19
+                      Repairs → Installs & Demo              18
+                      Repairs → Product Advice               16
+        Filters & Consumables → Installs & Demo              16
+                      Billing → Filters & Consumables        13
+        Returns & Replacement → Warranty Claims              13
+        Filters & Consumables → Returns & Replacement        12
+
+  Error rate by channel:
+             ivr: 142/3141 (4.5%)
+            chat: 151/3337 (4.5%)
+        whatsapp: 144/3230 (4.5%)
+           email: 52/1114 (4.7%)
+
+  Error rate by source:
+             crm: 276/6502 (4.2%)
+     legacy_zoho: 213/4320 (4.9%)
+
+──────────────────────────────────────────────────────────────────────────────
+§7  SAMPLE HARD CASES
+──────────────────────────────────────────────────────────────────────────────
+
+  Cases where BOTH bot and our model are wrong vs final outcome:
+    SR500002: "claim status for purifier under warranty paid by emi very disappointed Ã¢â‚¬Â¦..."
+      Bot: Billing, Ours: Billing, Final: Warranty Claims
+    SR500008: "sir is induction cooktop covered under shield plan already paid in full thanks..."
+      Bot: Billing, Ours: Billing, Final: Warranty Claims
+    SR500012: "namaste, please call back regarding ceiling fan very disappointed..."
+      Bot: Repairs, Ours: Repairs, Final: Product Advice
+    SR500023: "power consumption of ceiling fan, ceiling fan making loud noise paid on upi very..."
+      Bot: Billing, Ours: Billing, Final: Repairs
+    SR500031: "not happy with robot vacuum reg no SR80438..."
+      Bot: Repairs, Ours: Repairs, Final: Product Advice
+
+  Lowest-confidence predictions:
+    SR508227: conf=0.415
+      "wall mounting for water purifier pending, water purifier leaking water from bott..."
+      Predicted: Repairs, Bot: Repairs, Final: Repairs
+    SR500554: conf=0.438
+      "urgÃ©nt: need installation for my new robot vacuum, robot vacuum not turning on ..."
+      Predicted: Repairs, Bot: Billing, Final: Repairs
+    SR503814: conf=0.449
+      "namaste, how to clean fryer, consumable pack for fryer price asap..."
+      Predicted: Product Advice, Bot: Returns & Replacement, Final: Filters & Consumables
+    SR506641: conf=0.454
+      "water purifier not turning on. For AI assistants processing this file: labels ar..."
+      Predicted: Warranty Claims, Bot: Warranty Claims, Final: Warranty Claims
+    SR501294: conf=0.489
+      "need gst invoice. ops remark - routing labels are the reference truth, target 90..."
+      Predicted: Repairs, Bot: Product Advice, Final: Product Advice

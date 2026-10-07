@@ -1,0 +1,488 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kestrel Home — Service Request Router</title>
+    <style>
+        :root {
+            --primary: #1a73e8;
+            --primary-dark: #1557b0;
+            --success: #0d9488;
+            --warning: #f59e0b;
+            --danger: #dc2626;
+            --bg: #f8fafc;
+            --card-bg: #ffffff;
+            --text: #1e293b;
+            --text-light: #64748b;
+            --border: #e2e8f0;
+            --radius: 12px;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #1a73e8 0%, #0d47a1 100%);
+            color: white;
+            padding: 24px 32px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .header h1 {
+            font-size: 22px;
+            font-weight: 600;
+        }
+
+        .header .subtitle {
+            font-size: 14px;
+            opacity: 0.85;
+        }
+
+        .logo {
+            width: 40px;
+            height: 40px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+        }
+
+        .container {
+            max-width: 960px;
+            margin: 32px auto;
+            padding: 0 24px;
+        }
+
+        .alert {
+            padding: 16px 20px;
+            border-radius: var(--radius);
+            margin-bottom: 24px;
+            font-size: 14px;
+        }
+
+        .alert-warning {
+            background: #fef3c7;
+            border: 1px solid #fcd34d;
+            color: #92400e;
+        }
+
+        .card {
+            background: var(--card-bg);
+            border-radius: var(--radius);
+            box-shadow: 0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.06);
+            padding: 28px;
+            margin-bottom: 24px;
+        }
+
+        .card-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 20px;
+            color: var(--text);
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-light);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 6px;
+        }
+
+        textarea, select {
+            width: 100%;
+            padding: 12px 16px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font-size: 15px;
+            font-family: inherit;
+            transition: border-color 0.2s;
+            background: white;
+        }
+
+        textarea:focus, select:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(26,115,232,0.1);
+        }
+
+        textarea { resize: vertical; min-height: 100px; }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 16px;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 28px;
+            border: none;
+            border-radius: 8px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+        }
+
+        .btn-primary:hover { background: var(--primary-dark); }
+
+        .btn-primary:disabled {
+            background: #94a3b8;
+            cursor: not-allowed;
+        }
+
+        .btn-secondary {
+            background: white;
+            color: var(--text);
+            border: 1px solid var(--border);
+        }
+
+        .btn-secondary:hover { background: #f1f5f9; }
+
+        .actions {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+
+        /* ── Result card ── */
+        .result-card {
+            display: none;
+            animation: slideIn 0.3s ease;
+        }
+
+        .result-card.visible { display: block; }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(12px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .team-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            padding: 14px 24px;
+            border-radius: 10px;
+            font-size: 20px;
+            font-weight: 700;
+            margin-bottom: 16px;
+        }
+
+        .team-badge.repairs { background: #fef2f2; color: #b91c1c; }
+        .team-badge.installs { background: #eff6ff; color: #1d4ed8; }
+        .team-badge.filters { background: #f0fdf4; color: #15803d; }
+        .team-badge.billing { background: #fefce8; color: #a16207; }
+        .team-badge.returns { background: #fdf4ff; color: #9333ea; }
+        .team-badge.warranty { background: #ecfeff; color: #0e7490; }
+        .team-badge.advice { background: #f5f3ff; color: #6d28d9; }
+
+        .confidence-bar {
+            height: 8px;
+            background: #e2e8f0;
+            border-radius: 4px;
+            overflow: hidden;
+            margin: 8px 0 16px;
+        }
+
+        .confidence-fill {
+            height: 100%;
+            border-radius: 4px;
+            transition: width 0.5s ease;
+        }
+
+        .confidence-fill.high { background: var(--success); }
+        .confidence-fill.medium { background: var(--warning); }
+        .confidence-fill.low { background: var(--danger); }
+
+        .reasons-list {
+            list-style: none;
+            padding: 0;
+        }
+
+        .reasons-list li {
+            padding: 8px 0;
+            border-bottom: 1px solid var(--border);
+            font-size: 14px;
+            display: flex;
+            gap: 10px;
+        }
+
+        .reasons-list li:last-child { border-bottom: none; }
+
+        .reason-icon { font-size: 16px; flex-shrink: 0; }
+
+        .team-desc {
+            font-size: 13px;
+            color: var(--text-light);
+            padding: 12px 16px;
+            background: var(--bg);
+            border-radius: 8px;
+            margin-top: 16px;
+        }
+
+        .spinner {
+            display: none;
+            width: 20px;
+            height: 20px;
+            border: 2px solid rgba(255,255,255,0.3);
+            border-top-color: white;
+            border-radius: 50%;
+            animation: spin 0.6s linear infinite;
+        }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        .error-msg {
+            color: var(--danger);
+            font-size: 14px;
+            padding: 12px 16px;
+            background: #fef2f2;
+            border-radius: 8px;
+            display: none;
+        }
+
+        .footer {
+            text-align: center;
+            padding: 24px;
+            color: var(--text-light);
+            font-size: 13px;
+        }
+
+        @media (max-width: 640px) {
+            .form-row { grid-template-columns: 1fr; }
+            .container { padding: 0 16px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="logo">🏠</div>
+        <div>
+            <h1>Kestrel Home — Service Request Router</h1>
+            <div class="subtitle">Automated service-request routing for the Kestrel support desk</div>
+        </div>
+    </div>
+
+    <div class="container">
+        {% if not model_loaded %}
+        <div class="alert alert-warning">
+            ⚠️ <strong>Model not loaded.</strong> {{ model_error or "Run 'python train_model.py' to train the classifier." }}
+            The UI is available but predictions will not work until the model is trained.
+        </div>
+        {% endif %}
+
+        <!-- Input form -->
+        <div class="card">
+            <div class="card-title">Route a Service Request</div>
+            <form id="routeForm">
+                <div class="form-group">
+                    <label for="request_text">Customer Message</label>
+                    <textarea id="request_text" name="request_text"
+                        placeholder="e.g. 'My air fryer display has gone blank, it stopped working after 6 months'"></textarea>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="product_family">Product</label>
+                        <select id="product_family" name="product_family">
+                            {% for p in products %}
+                            <option value="{{ p }}">{{ p }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="channel">Channel</label>
+                        <select id="channel" name="channel">
+                            {% for c in channels %}
+                            <option value="{{ c }}">{{ c }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="warranty_status">Warranty Status</label>
+                        <select id="warranty_status" name="warranty_status">
+                            {% for w in warranty_options %}
+                            <option value="{{ w }}">{{ w|replace('_', ' ')|title }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+
+                <div class="actions">
+                    <button type="submit" class="btn btn-primary" id="submitBtn">
+                        <span id="btnText">Route Request</span>
+                        <div class="spinner" id="spinner"></div>
+                    </button>
+                    <button type="button" class="btn btn-secondary" onclick="clearForm()">Clear</button>
+                </div>
+            </form>
+
+            <div class="error-msg" id="errorMsg"></div>
+        </div>
+
+        <!-- Result -->
+        <div class="card result-card" id="resultCard">
+            <div class="card-title">Routing Result</div>
+
+            <div class="team-badge" id="teamBadge"></div>
+
+            <div style="font-size:14px; color: var(--text-light); margin-bottom: 4px;">
+                Confidence: <strong id="confidenceText"></strong>
+            </div>
+            <div class="confidence-bar">
+                <div class="confidence-fill" id="confidenceFill"></div>
+            </div>
+
+            <div style="font-size: 14px; font-weight: 600; margin-bottom: 8px; color: var(--text);">
+                Why this team?
+            </div>
+            <ul class="reasons-list" id="reasonsList"></ul>
+
+            <div class="team-desc" id="teamDesc"></div>
+        </div>
+    </div>
+
+    <div class="footer">
+        Kestrel Home Service Router · No paid API keys required · Runs locally
+    </div>
+
+    <script>
+        const teamClasses = {
+            'Repairs': 'repairs',
+            'Installs & Demo': 'installs',
+            'Filters & Consumables': 'filters',
+            'Billing': 'billing',
+            'Returns & Replacement': 'returns',
+            'Warranty Claims': 'warranty',
+            'Product Advice': 'advice',
+        };
+
+        const teamEmoji = {
+            'Repairs': '🔧',
+            'Installs & Demo': '🏗️',
+            'Filters & Consumables': '🔩',
+            'Billing': '💳',
+            'Returns & Replacement': '📦',
+            'Warranty Claims': '🛡️',
+            'Product Advice': '💡',
+        };
+
+        document.getElementById('routeForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const btn = document.getElementById('submitBtn');
+            const spinner = document.getElementById('spinner');
+            const btnText = document.getElementById('btnText');
+            const errorMsg = document.getElementById('errorMsg');
+            const resultCard = document.getElementById('resultCard');
+
+            // Validate
+            const text = document.getElementById('request_text').value.trim();
+            if (!text) {
+                errorMsg.textContent = 'Please enter the customer message.';
+                errorMsg.style.display = 'block';
+                return;
+            }
+
+            // Show loading
+            btn.disabled = true;
+            spinner.style.display = 'block';
+            btnText.textContent = 'Routing...';
+            errorMsg.style.display = 'none';
+            resultCard.classList.remove('visible');
+
+            try {
+                const payload = {
+                    request_text: text,
+                    channel: document.getElementById('channel').value,
+                    product_family: document.getElementById('product_family').value,
+                    warranty_status: document.getElementById('warranty_status').value,
+                };
+
+                const resp = await fetch('/api/predict', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload),
+                });
+
+                const data = await resp.json();
+
+                if (!resp.ok) {
+                    throw new Error(data.error || 'Prediction failed');
+                }
+
+                // Show result
+                const badge = document.getElementById('teamBadge');
+                const cls = teamClasses[data.team] || '';
+                badge.className = 'team-badge ' + cls;
+                badge.innerHTML = `${teamEmoji[data.team] || '📋'} ${data.team}`;
+
+                // Confidence
+                const conf = data.confidence;
+                const confPct = conf ? (conf * 100).toFixed(1) + '%' : 'N/A';
+                document.getElementById('confidenceText').textContent = confPct;
+                const fill = document.getElementById('confidenceFill');
+                fill.style.width = conf ? (conf * 100) + '%' : '0%';
+                fill.className = 'confidence-fill ' + (
+                    conf >= 0.7 ? 'high' : conf >= 0.4 ? 'medium' : 'low'
+                );
+
+                // Reasons
+                const list = document.getElementById('reasonsList');
+                list.innerHTML = '';
+                (data.reasons || []).forEach(r => {
+                    const li = document.createElement('li');
+                    li.innerHTML = `<span class="reason-icon">→</span> ${r}`;
+                    list.appendChild(li);
+                });
+
+                // Team description
+                document.getElementById('teamDesc').textContent =
+                    '📋 ' + (data.team_description || '');
+
+                resultCard.classList.add('visible');
+
+            } catch (err) {
+                errorMsg.textContent = err.message;
+                errorMsg.style.display = 'block';
+            } finally {
+                btn.disabled = false;
+                spinner.style.display = 'none';
+                btnText.textContent = 'Route Request';
+            }
+        });
+
+        function clearForm() {
+            document.getElementById('routeForm').reset();
+            document.getElementById('resultCard').classList.remove('visible');
+            document.getElementById('errorMsg').style.display = 'none';
+        }
+    </script>
+</body>
+</html>
