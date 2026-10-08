@@ -173,7 +173,7 @@ Compare: current bot licence = Rs 3,20,000/year = Rs 26,667/month.
 
 ## 12. GitHub Repo Link
 
-[INSERT LINK]
+https://github.com/Nandu1729/kestrel-router
 
 ---
 
