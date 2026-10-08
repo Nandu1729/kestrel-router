@@ -2,7 +2,7 @@
 
 **To:** Ritu Deshpande, Head of D2C Operations  
 **From:** Nanda Kishore Arra  
-**Date:** 7 October 2026  
+**Date:** 8 October 2026  
 **Re:** Replacing the routing bot — recommendation and numbers
 
 ---
